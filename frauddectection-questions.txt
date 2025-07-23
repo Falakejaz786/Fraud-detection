@@ -1,0 +1,107 @@
+1. Data cleaning including missing values, outliers and multi-collinearity.
+
+Missing values:
+I checked for missing values and found none in the dataset, so no imputation was required.
+
+Outliers:
+Visualizations and statistical summaries showed some extreme values (e.g., very high transaction amounts), typical in fraud datasets. I retained these as they might be important indicators of fraud.
+
+Multi-collinearity:
+Using Variance Inflation Factor (VIF),I identified high multicollinearity between some balance features (e.g., 'newbalanceorig' and 'oldbalanceorg'). These features are strongly correlated, which can affect model stability.I kept them since tree-based models (Random Forest, XGBoost) handle multicollinearity well, but for linear models,I would consider removing or combining these variables.
+
+
+
+2. Describe your fraud detection model in elaboration.
+
+->I built two classification models: 'Random Forest' and 'XGBoost' to detect fraudulent transactions.
+
+->Both models were trained on scaled numerical features after dropping categorical columns like 'type', 'nameOrig', and 'nameDest' to avoid data leakage or overly complex feature engineering.
+
+->The Random Forest classifier used 100 trees and handled class imbalance using class_weight='balanced'. The XGBoost classifier used default parameters with logloss evaluation and early stopping.
+
+->These ensemble tree models can capture complex nonlinear relationships and interactions between features, which is crucial for detecting subtle fraud patterns.
+
+
+
+3. How did you select variables to be included in the model?
+
+->I started with domain knowledge: features related to transaction step, amount, and balances (old and new) for origin and destination accounts.
+
+->Categorical variables ('type','nameOrig','nameDest') were excluded due to complexity and potential leakage.
+
+->VIF analysis helped me identify multicollinearity, but tree models are robust to this, so I retained all numeric features.
+
+->Further feature selection can be done using model-based importance scores, but initial inclusion was based on data availability and relevance.
+
+
+
+4. Demonstrate the performance of the model by using best set of tools.
+
+Random Forest results:
+->Precision on fraud class: 0.97
+->Recall on fraud class: 0.70
+->F1-score on fraud class: 0.81
+->ROC AUC score: 0.9911
+
+XGBoost results:
+->Precision on fraud class: 0.77
+->Recall on fraud class: 0.67
+->F1-score on fraud class: 0.71
+
+Confusion matrices and classification reports showed excellent detection of non-fraud cases, with slightly lower recall on fraud cases (which is common due to class imbalance).
+
+ROC AUC near 1 indicates strong discrimination ability.
+
+
+
+5. What are the key factors that predict fraudulent customer?
+
+From the model feature importance (we can extract using 'rf.feature_importances_' or 'xgb.feature_importances_'), key factors often include:
+
+->Large transaction amounts ('amount')
+->Changes in account balances ('oldbalanceOrg', 'newbalanceOrig')
+->Step/time of transaction ('step')
+->Destination account balance ('oldbalanceDest', 'newbalanceDest')
+
+Fraud tends to occur in unusual transactions with large sums or drastic balance changes.
+
+
+
+6. Do these factors make sense? If yes, How? If not, How not?
+
+Yes, these factors make sense:
+
+->Fraudsters usually perform transactions that stand out from normal behavior (e.g., large amounts, sudden depletion of funds).
+->Time ('step') can indicate patterns like fraud occurring at certain times.
+->Changes in balances reflect money movement — rapid zeroing out or suspicious transfers are red flags.
+
+
+
+7. What kind of prevention should be adopted while company update its infrastructure?
+
+->Implement real-time transaction monitoring with fraud detection models integrated into payment gateways.
+
+->Use multi-factor authentication for sensitive transactions.
+
+->Set threshold alerts on large or unusual transaction amounts.
+
+->Employ periodic retraining of fraud models with updated data.
+
+->Integrate behavioral analytics to detect anomalies beyond fixed rules.
+
+->Ensure secure data pipelines and audit trails.
+
+
+
+8. Assuming these actions have been implemented, how would you determine if they work?
+
+->Monitor fraud detection metrics over time: reduction in fraud losses, improved recall and precision in flagged transactions.
+
+->Track false positives and false negatives to maintain balance between security and customer convenience.
+
+->Use A/B testing or phased rollouts to compare performance before and after deployment.
+
+->Analyze feedback loops from fraud investigation teams and customer complaints.
+
+->Regularly check model drift using ROC AUC and recalibrate or retrain as needed.
+
